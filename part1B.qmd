@@ -1,0 +1,203 @@
+---
+title: "Maturity of white sharks (_Carcharodon carcharias_)"
+author:
+    - Bastin Lucien
+    - Fournil Lucie
+date: 2025/09/11
+knitr:
+    opts_chunk: 
+        message: false
+format: html
+fig-width: 12
+fig-height: 7.5
+lightbox: true
+toc: true
+toc-location: right-body
+embed-resources: true
+---
+
+# Loading libraries
+
+```{r}
+library(dplyr)
+library(ggplot2)
+library(MCMCvis)
+library(nimble)
+library(tidyr)
+library(viridis)
+```
+
+# Question 1
+
+Data-poor species, lack of information on their basic biology. Protected species, so difficult to sample individuals
+
+# Question 2
+
+# Question 3
+
+```{r}
+maturity_proportion <- function(tl, l_50, phi) {
+    1 / (1+ exp(-(tl - l_50) / phi))
+}
+```
+
+```{r}
+maturity_ogives <- expand.grid(
+    length = seq(200, 500, 1),
+    phi = c(0, 0.5, 1, 2, 5, 10)
+) |>
+    mutate(
+        proportion = maturity_proportion(length, 350, phi),
+        phi = as.factor(phi)
+    )
+```
+
+```{r}
+ggplot(maturity_ogives, aes(x = length, y = proportion, color = phi)) +
+    geom_line() +
+    scale_color_viridis_d() +
+    theme_bw()
+```
+
+# Question 4
+
+```{r}
+n <- 1E6
+
+distributions <- data.frame(
+    male_l50 = rnorm(n, mean = 329, sd = 17.18),
+    male_phi = rlnorm(n, meanlog = 2, sdlog = sqrt(1 / 10)),
+    female_l50 = rnorm(n, mean = 440.75, sd = 47),
+    female_phi = rlnorm(n, meanlog = 2.5, sdlog = sqrt(1 / 10))
+)
+
+distributions <- distributions |>
+    pivot_longer(everything(), names_to = "type", values_to = "value") |>
+    separate_wider_delim(type, delim = "_", names = c("sex", "parameter"))
+```
+
+```{r}
+ggplot(distributions, aes(x = value)) +
+    geom_histogram(bins = 100) +
+    facet_grid(vars(sex), vars(parameter), scales = "free") +
+    theme_bw()
+```
+
+# Question 5
+
+# Question 6
+
+```{r}
+maturity_p <- expand.grid(
+    x = seq(200, 500, 1)
+)
+
+maturity_params <- data.frame(
+    sex = rep(c("male","female"), 3),
+    pos = rep(c("low", "mean", "high"), each = 2),
+    l_50 = c(321.2, 390.8, 334.9, 411.3, 348.2, 432.6),
+    phi = c(7.5, 10.5, 7.5, 10.5, 7.5, 10.5)
+)
+
+res <- merge(maturity_p, maturity_params)
+```
+
+```{r}
+res <- res |>
+    mutate(
+        proportion = maturity_proportion(x, l_50, phi),
+        sex = as.factor(sex),
+        pos = factor(pos,levels = c("low", "mean", "high"))
+    )
+```
+
+```{r}
+ggplot(
+    res,
+    aes(x = x, y = proportion, color = sex, group = interaction(sex, pos))
+) +
+    geom_line(aes(linetype = pos)) +
+    scale_linetype_manual(
+        values = c("dashed", "dashed", "solid"),
+        guide = "none"
+    ) +
+    labs(x = "Total length (cm)", color = "Sex") +
+    theme_test()
+```
+
+# Question 7
+
+# Question 8
+
+```{r}
+sharks <- read.csv("Data/sharks.csv")
+
+sharks <- sharks |>
+    mutate(
+        #TL = as.numeric(substr(TL, 1, 3)),
+        sex = as.integer(ifelse(sex == "f", 1, 2))
+    ) |>
+    separate_wider_delim(
+        TL,
+        delim = "-",
+        names = c("low", "high"),
+        cols_remove = FALSE
+    ) |>
+    mutate(
+        low = as.integer(low),
+        high = as.integer(high),
+        mean_tl = (low + high) / 2
+    )
+```
+
+```{r}
+maturity_model <- nimbleCode({
+    for (i in 1:n_obs) {
+        logit(p[i]) <- (mean_tl[i] - L50[sex[i]]) / phi[sex[i]]
+        maturity[i] ~ dbern(p[i])
+    }
+    
+    L50[1] ~ dnorm(mu_l50[1], tau = tau_l50[1])
+    L50[2] ~ dnorm(mu_l50[2], tau = tau_l50[2])
+    phi[1] ~ dlnorm(mu_log_phi[1], tau = tau_log_phi[1])
+    phi[2] ~ dlnorm(mu_log_phi[2], tau = tau_log_phi[2])
+})
+
+data_constant <- list(
+    n_obs = sharks |> nrow(),
+    TL = sharks |> pull(TL),
+    mean_tl = sharks |> pull(mean_tl),
+    sex = sharks |> pull(sex),
+    mu_l50 = c(440.75, 329),
+    tau_l50 = c(1 / (47**2), 1 / (17.18**2)),
+    mu_log_phi = c(2.5, 2),
+    tau_log_phi = c(10, 10)
+)
+
+data_stochastic <- list(
+    maturity = sharks |> pull(maturity)
+)
+
+mcmc_maturity <- nimbleMCMC(
+    code = maturity_model,
+    constants = data_constant,
+    data = data_stochastic,
+    nchains = 4,
+    niter = 5000,
+    nburnin = 1000,
+    thin = 1,
+    summary = TRUE,
+    WAIC = TRUE,
+    monitors = c('L50', 'phi'),
+    progressBar = FALSE
+)
+```
+
+```{r}
+MCMCtrace(
+    object = mcmc_maturity$samples,
+    pdf = FALSE,
+    ind = TRUE,
+    params = c('L50', 'phi')
+)
+```

@@ -1,0 +1,206 @@
+---
+title: "Sightings of North Pacific right whales (_Eubalaena japonica_)"
+author:
+    - Bastin Lucien
+    - Fournil Lucie
+date: 2025/09/10
+knitr:
+    opts_chunk: 
+        message: false
+format: html
+fig-width: 12
+fig-height: 7.5
+lightbox: true
+toc: true
+toc-location: right-body
+embed-resources: true
+---
+
+# Loading libraries
+
+```{r}
+library(dplyr)
+library(ggplot2)
+library(ggspatial)
+library(lubridate)
+library(rnaturalearth)
+library(sf)
+library(tidyr)
+library(viridis)
+```
+
+# Question 1
+
+The data is located in the `Data` folder as a `.csv` file.
+
+# Question 2
+
+Loading the sightings data, and a map layer for later.
+
+```{r}
+data_whale <- read.csv("Data/data_whale.csv")
+world <- ne_countries(scale = "medium", returnclass = "sf")
+```
+
+Preview of the data :
+
+```{r}
+head(data_whale)
+```
+
+Turning the data into an sf object :
+
+```{r}
+data_whale_sf <- data_whale |>
+    st_as_sf(coords = c("longitude", "latitude"), crs = 4326) |>
+    st_cast()
+```
+
+Plot of the sightings :
+
+```{r}
+#| fig-cap: Positions of the right whales sightings
+
+plot_map <- function(data) {
+    ggplot(data_whale_sf) +
+        geom_sf(data = world) +
+        geom_sf(data = data_whale_sf) +
+        coord_sf(xlim = c(-105, -179), ylim = c(22, 73), expand = FALSE) +
+        annotation_scale(location = "bl", width_hint = 0.25) +
+        annotation_north_arrow(
+            location = "bl",
+            which_north = "true",
+            pad_x = unit(0.2, "cm"),
+            pad_y = unit(0.5, "cm"),
+            style = north_arrow_fancy_orienteering
+        ) +
+        labs(x = "Longitude (°W)", y = "Latitude (°N)") +
+        theme_test()
+}
+
+map1 <- plot_map(data_whale_sf)
+
+map1
+```
+
+# Question 3
+
+Convert the `Date` column to a date object with package `lubridate` :
+
+```{r}
+data_whale_sf <- data_whale_sf |>
+    mutate(date = as_date(ymd(date))) |> # Convert date to lubridate date object
+    mutate(month = factor(month(date)), year = factor(year(date))) # Extract month and year
+```
+
+Recode the month as season :
+
+```{r}
+month_season_table <- tribble(
+    ~month, ~month_name, ~season,
+    "1", "january", "winter",
+    "2", "february", "winter",
+    "3", "march", "spring",
+    "4", "april", "spring",
+    "5", "may", "spring",
+    "6", "june", "summer",
+    "7", "july", "summer",
+    "8", "august", "summer",
+    "9", "september", "autumn",
+    "10", "october", "autumn",
+    "11", "november", "autumn",
+    "12", "december", "winter"
+)
+
+month_order <- c(
+    "january", "february", "march", "april", "may", "june", "july", 
+    "august", "september", "october", "november", "december"
+)
+
+data_whale_sf <- data_whale_sf |>
+    left_join(month_season_table) |>
+    mutate(
+        season = factor(
+            season,
+            levels = c("spring", "summer", "autumn", "winter")
+        ),
+        month_name = factor(month_name, levels = month_order)
+    )
+```
+
+Plot sightings by season :
+
+```{r}
+#| fig-cap: Positions of the sightings of right whales for each season
+
+map2 <- plot_map(data_whale_sf) + facet_wrap(vars(season))
+
+map2
+```
+
+# Question 4
+
+Average location of sightings per month :
+
+```{r}
+data_whale_sf <- data_whale_sf |>
+    mutate(
+        lon = st_coordinates(geometry)[, 1],
+        lat = st_coordinates(geometry)[, 2]
+    ) |>
+    group_by(month) |>
+    mutate(mean_lon = mean(lon), mean_lat = mean(lat))
+```
+
+Add average locations by month to the map :
+
+```{r}
+#| fig-cap: Average position of right whale sightings by month, divided between seasons.
+
+map3 <- plot_map(data_whale_sf) +
+    facet_wrap(vars(season)) +
+    geom_point(
+        data = data_whale_sf,
+        aes(x = mean_lon, y = mean_lat, color = month_name),
+        shape = 18,
+        size = 4
+    ) +
+    labs(color = "Month")
+
+map3
+```
+
+Based on these data, it appears that right whales migrate northwards during spring and summer, leaving the southern US coasts to reach Alaska where they spend the summer and autumn. At the end of autumn, the whales travel back to the south.
+
+# Question 5
+
+Summarize number of sightings and number of individuals by year :
+
+```{r}
+data_whale_summary <- data_whale_sf |>
+    group_by(year) |>
+    summarize(sightings = n(), total_ind = sum(no_individuals)) |>
+    pivot_longer(
+        cols = c(sightings, total_ind),
+        names_to = "measure",
+        values_to = "value"
+    )
+```
+
+Plotting the data :
+
+```{r}
+#| fig-cap: Time series of the number of sightings and total number of right whales seen each year
+
+ggplot(
+    data_whale_summary,
+    aes(x = year, y = value, color = measure, group = measure)
+) +
+    geom_line() +
+    scale_y_continuous(breaks = seq(0, 54, 2)) +
+    scale_color_discrete(labels = c("Total sightings", "Total individuals")) +
+    labs(x = "Year", y = "Value", color = "Measure") +
+    theme_bw()
+```
+
+It looks like the total number of sightings and the total number of right whale seen are highly correlated each year.
