@@ -35,11 +35,15 @@ Data-poor species, lack of information on their basic biology. Protected species
 
 # Question 3
 
+Function that returns the maturity probability value at a certain length :
+
 ```{r}
 maturity_proportion <- function(tl, l_50, phi) {
     1 / (1+ exp(-(tl - l_50) / phi))
 }
 ```
+
+Making a dataframe with lengths and the corresponding maturity probability values for each values of phi :
 
 ```{r}
 maturity_ogives <- expand.grid(
@@ -52,7 +56,11 @@ maturity_ogives <- expand.grid(
     )
 ```
 
+Which gives :
+
 ```{r}
+#| fig-cap: Maturity ogives for different phi values
+
 ggplot(maturity_ogives, aes(x = length, y = proportion, color = phi)) +
     geom_line() +
     scale_color_viridis_d() +
@@ -60,6 +68,8 @@ ggplot(maturity_ogives, aes(x = length, y = proportion, color = phi)) +
 ```
 
 # Question 4
+
+Generating samples for each distribution :
 
 ```{r}
 n <- 1E6
@@ -76,7 +86,11 @@ distributions <- distributions |>
     separate_wider_delim(type, delim = "_", names = c("sex", "parameter"))
 ```
 
+Plotting the distributions :
+
 ```{r}
+#| Distributions of l50 and phi for males and females
+
 ggplot(distributions, aes(x = value)) +
     geom_histogram(bins = 100) +
     facet_grid(vars(sex), vars(parameter), scales = "free") +
@@ -86,6 +100,8 @@ ggplot(distributions, aes(x = value)) +
 # Question 5
 
 # Question 6
+
+Creating a dataframe with sex, l50, phi and curve type for each length :
 
 ```{r}
 maturity_p <- expand.grid(
@@ -102,6 +118,8 @@ maturity_params <- data.frame(
 res <- merge(maturity_p, maturity_params)
 ```
 
+Filling in the maturity probabilities from our function :
+
 ```{r}
 res <- res |>
     mutate(
@@ -111,14 +129,18 @@ res <- res |>
     )
 ```
 
+Plotting the maturity ogives :
+
 ```{r}
+#| Maturity ogives for males and females plotted for their respective 5%, mean and 95% confidence interval l50 and phi parameters
+
 ggplot(
     res,
     aes(x = x, y = proportion, color = sex, group = interaction(sex, pos))
 ) +
     geom_line(aes(linetype = pos)) +
     scale_linetype_manual(
-        values = c("dashed", "dashed", "solid"),
+        values = c("dashed", "solid", "dashed"),
         guide = "none"
     ) +
     labs(x = "Total length (cm)", color = "Sex") +
@@ -129,9 +151,15 @@ ggplot(
 
 # Question 8
 
+Reading the shark maturity data :
+
 ```{r}
 sharks <- read.csv("Data/sharks.csv")
+```
 
+Cleaning the dataframe and computing th mean total length :
+
+```{r}
 sharks <- sharks |>
     mutate(
         #TL = as.numeric(substr(TL, 1, 3)),
@@ -149,6 +177,8 @@ sharks <- sharks |>
         mean_tl = (low + high) / 2
     )
 ```
+
+Nimble code :
 
 ```{r}
 maturity_model <- nimbleCode({
@@ -193,7 +223,11 @@ mcmc_maturity <- nimbleMCMC(
 )
 ```
 
+Visualizing the results of the MCMC
+
 ```{r}
+#| fig-cap: Convergence of the MCMC chains and distribution of the parameters
+
 MCMCtrace(
     object = mcmc_maturity$samples,
     pdf = FALSE,
