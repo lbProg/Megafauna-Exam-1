@@ -37,7 +37,13 @@ Data-poor species, lack of information on their basic biology. Protected species
 
 # Question 2
 
+A total of 87 individual sharks were captured. The total length, sex and life stage of the sharks were measured. The total length was measured in the same way except for three males where only the fork length was measured. The total length was computed from the fork length, using a formula linking total length to fork length based on all males of the study.
+
+This is probably not an issue since the curve linking fork length to total length was done with a large number of individuals (40) and has a really good fit (r² = 0.996).
+
 # Question 3
+
+A maturity ogive is a curve that represents the probability that an individual of a certain size is mature.
 
 Function that returns the maturity probability value at a certain length :
 
@@ -71,6 +77,8 @@ ggplot(maturity_ogives, aes(x = length, y = proportion, color = phi)) +
     theme_bw()
 ```
 
+Since phi is the denominator in the formula, it cannot be equal to zero. From a biological perspective, L50 should not be negative (because it represents a physical length)
+
 # Question 4
 
 Generating samples for each distribution :
@@ -102,6 +110,16 @@ ggplot(distributions, aes(x = value)) +
 ```
 
 # Question 5
+
+The MCMC analysis was performed using 100000 iterations, a burning of 1000 and a thinning of 1.
+
+Convergence was assessed using three Markov chains with overdispersed parameters L50 and phi, and a visual estimation of the chains's traces.
+
+Model selection was carried out with the WAIC values.
+
+Figures 5.D and 5.H show that there is no correlation between L50 and phi for either males or females.
+
+Since the prior and posterior distributions are not the same (Fig 6), we can assume that the data were informative on the L50 and phi parameters, especially for L50 and female phi.
 
 # Question 6
 
@@ -152,6 +170,10 @@ ggplot(
 ```
 
 # Question 7
+
+Using a Bayesian framework allowed the authors to get a better estimation of the parameters by combining the likelihood of the data and the prior probabilities, as opposed to a frequentist framework where the estimated parameters only depend on the data.
+
+Matuity ogives are useful in population dynamics because they allow, for instance, to express the reproductive rate of a population as a function of its age structure instead of considering sexual maturity as linked to a single age.
 
 # Question 8
 
