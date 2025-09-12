@@ -75,7 +75,7 @@ plot_map <- function(whale_pos) {
             pad_y = unit(0.5, "cm"),
             style = north_arrow_fancy_orienteering
         ) +
-        scale_size_continuous(range = c(1, 5)) +
+        scale_size_continuous(range = c(2, 7)) +
         labs(
             x = "Longitude (°W)",
             y = "Latitude (°N)",
