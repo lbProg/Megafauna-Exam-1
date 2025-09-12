@@ -52,6 +52,7 @@ Turning the data into an sf object :
 
 ```{r}
 data_whale_sf <- data_whale |>
+    mutate(longitude = -longitude) |>
     st_as_sf(coords = c("longitude", "latitude"), crs = 4326) |>
     st_cast()
 ```
@@ -61,10 +62,10 @@ Plot of the sightings :
 ```{r}
 #| fig-cap: Positions of the right whales sightings
 
-plot_map <- function(data) {
-    ggplot(data_whale_sf) +
+plot_map <- function(whale_pos) {
+    ggplot(whale_pos) +
         geom_sf(data = world) +
-        geom_sf(data = data_whale_sf) +
+        geom_sf(data = whale_pos) +
         coord_sf(xlim = c(-105, -179), ylim = c(22, 73), expand = FALSE) +
         annotation_scale(location = "bl", width_hint = 0.25) +
         annotation_north_arrow(
