@@ -65,7 +65,7 @@ Plot of the sightings :
 plot_map <- function(whale_pos) {
     ggplot(whale_pos) +
         geom_sf(data = world) +
-        geom_sf(data = whale_pos) +
+        geom_sf(data = whale_pos, aes(size = no_individuals), shape = 21) +
         coord_sf(xlim = c(-105, -179), ylim = c(22, 73), expand = FALSE) +
         annotation_scale(location = "bl", width_hint = 0.25) +
         annotation_north_arrow(
@@ -75,7 +75,12 @@ plot_map <- function(whale_pos) {
             pad_y = unit(0.5, "cm"),
             style = north_arrow_fancy_orienteering
         ) +
-        labs(x = "Longitude (°W)", y = "Latitude (°N)") +
+        scale_size_continuous(range = c(1, 5)) +
+        labs(
+            x = "Longitude (°W)",
+            y = "Latitude (°N)",
+            size = "Number of\nindividuals"
+        ) +
         theme_test()
 }
 
