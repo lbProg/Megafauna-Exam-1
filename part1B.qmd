@@ -27,6 +27,10 @@ library(tidyr)
 library(viridis)
 ```
 
+```{r}
+set.seed(123)
+```
+
 # Question 1
 
 Data-poor species, lack of information on their basic biology. Protected species, so difficult to sample individuals
