@@ -89,7 +89,7 @@ distributions <- distributions |>
 Plotting the distributions :
 
 ```{r}
-#| Distributions of l50 and phi for males and females
+#| fig-cap: Distributions of l50 and phi for males and females
 
 ggplot(distributions, aes(x = value)) +
     geom_histogram(bins = 100) +
@@ -132,7 +132,7 @@ res <- res |>
 Plotting the maturity ogives :
 
 ```{r}
-#| Maturity ogives for males and females plotted for their respective 5%, mean and 95% confidence interval l50 and phi parameters
+#| fig-cap: Maturity ogives for males and females plotted for their respective 5%, mean and 95% confidence interval l50 and phi parameters
 
 ggplot(
     res,
