@@ -33,9 +33,13 @@ set.seed(123) # For reproducibility
 
 # Question 1
 
+*What are the knowledge gaps for many marine megafauna, including white sharks?*
+
 As most species of marine megafauna, white sharks are considered a "data-poor" species. In addition, their protected status makes it difficult to collect specimens to study them. Because of these reasons, there is a lack of knowledge about basic life-history traits of white sharks.
 
 # Question 2
+
+*Describe briefly the sampling carried out in this study. What is the data sample size? Was the TL data collected in the same way for all sharks? If not, is this an issue? Please justify why you think it is an issue or not (mono-syllabic answer won’t get a full grade).*
 
 Between 2017 and 2022, 17 cruises captured 87 white sharks along the Atlantic coast of the USA and Canada (belonging to the “WNA” population). After being captured, sharks were measured for their total length (TL) and fork length (FL), their sex and life stage were recorded, and they were released.
 
@@ -44,6 +48,8 @@ Out of the 87 individuals, only 3 males didn't get a direct measurment of TL, wh
 This is probably not an issue since the formula was calibrated with males from the same study and the same population. The high determination coefficient (R² = 0.996) and number of individuals used (40) indicate a good quality of the estimation of TL from FL.
 
 # Question 3
+
+*What is a maturity ogive? Please illustrate one using R: write a function to draw a maturity ogive from the necessary inputs. Use the input $L_{50} = 350$ and plot the resulting function over the support 200-500 cm for these following values of input $\phi \in {0, 0.5, 1, 2, 5, 10}$. Use different colors to display the results on the same plots with a legend on the right. Are there any constraints on the inputs $\theta = \phi, L_{50}$ ?*
 
 A maturity ogive gives the probability for an individual of a certain size and/or age to be sexually mature.
 
@@ -84,6 +90,8 @@ From a biological perspective, $\phi$ shouldn't be negative either (as it would 
 
 # Question 4
 
+*The authors chose to use informative prior distributions for the parameters $\theta = \phi, L_{50}$ with different priors for males and females. Plot the density of these priors using R: use facet to have sex on rows and parameters in columns for this plot. (hint: prepare a data.frame with a long format and use facet_grid)*
+
 Generating samples for each distribution :
 
 ```{r}
@@ -114,6 +122,8 @@ ggplot(distributions, aes(x = value)) +
 
 # Question 5
 
+*Describe the chosen specifications for the MCMC analysis (nb or iteration, burnin, thinning) and how the authors assessed parameters convergence and carried out model selection (if any). Are there any correlations in the posterior distribution of  $\theta = \phi, L_{50}$ for either males or females? From figure 6, would you say that the data were informative on these parameters compared to the initial priors?*
+
 The authors performed three MCMC chains, each with 100 000 iterations, a burn-in of 1 000 and a thinning rate of 1. They assessed parameters convergence visually using trace plots, lag autocorrelation of parameters, the Brooks-Gelman-Rubin (BGR) diagnostics, the dispersion of particles between parameters, and the shape of the parameter's marginal profiles. Model selection was carried out by comparing the DIC and WAIC values of the models, as well as checking for correlation between parameters and comparing the posterior distributions of the parameters.
 
 Figures 5.D and 5.H show that there is no correlation between $L_{50}$ and phi for either males or females when using informative priors. However, there was correlation between the females when using noninformative priors.
@@ -121,6 +131,8 @@ Figures 5.D and 5.H show that there is no correlation between $L_{50}$ and phi f
 Since the prior and posterior distributions are not the same (Fig 6), we can assume that the data were informative on the $L_{50}$ and $\phi$ parameters, except maybe in the case of the female $L_{50}$ where the curves overlap a lot.
 
 # Question 6
+
+*From table 3, reproduce the curves displayed on Figure 7. Use dashed lines for the lower and upper bounds, a solid line for the posterior mean and different colours for males and females.*
 
 Creating a dataframe with sex, $L_{50}$ , $\phi$ and curve type for each length :
 
@@ -170,11 +182,15 @@ ggplot(
 
 # Question 7
 
+*How do the authors justify their resorting to a Bayesian framework? Why is knowledge of a maturity ogive important for conservation and management?*
+
 Using a Bayesian framework allowed the authors to get a better estimation of the parameters by combining the likelihood of the data and the prior probabilities, as opposed to a frequentist framework where the estimated parameters only depend on the data.
 
 Matuity ogives are useful in population dynamics because they allow, for instance, to express the reproductive rate of a population as a function of its age structure instead of considering sexual maturity as linked to a single age.
 
 # Question 8
+
+*Write the nimble code for the ogive maturity model describe in the paper. Use the same likelihood and priors than those described in the paper.*
 
 Reading the shark maturity data :
 

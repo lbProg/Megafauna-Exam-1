@@ -31,9 +31,13 @@ library(viridis)
 
 # Question 1
 
+*Collate the sighting data from Tables 1, 2 and 3 in a file for analysis in R, that is make them tidy data. Keep the datetime stamp, the geographic coordinates of the sightings along with the number of individuals sighted. Do not keep the other columns.*
+
 The data is located in the `Data` folder as a `.csv` file.
 
 # Question 2
+
+*Load the data in R. Turn the data.frame into an sf object. Make a first plot of the sighting data. Add a land mask, a north arrow and a scale. Project the data to an appropriate coordinates reference system.*
 
 Loading the sightings data, and a map layer for later.
 
@@ -96,6 +100,8 @@ map1
 
 # Question 3
 
+*Change the format of date to a date object with package lubridate. Extract month and year as two new columns. Recode month into season with Dec-Jan-Feb as winter, March-April-May as spring, June-July-Aug as summer and Sept.-Oct.-Nov as autumn. Make a plot with four facets displaying the sightings for each season.*
+
 Convert the `Date` column to a date object with package `lubridate` :
 
 ```{r}
@@ -154,6 +160,8 @@ map2
 
 # Question 4
 
+*For each month, compute the average location of all sightings in the data. You will need to work on the projected coordinates and extract (hint: use st_coordinates()) them before averaging. Plot the resulting average locations using a color code for each month. What does this map suggest with respect to where right whales are throughout a year ?*
+
 Average location of sightings per month :
 
 ```{r}
@@ -187,6 +195,8 @@ map3
 Based on these data, it appears that right whales migrate northwards during spring and summer, leaving the southern US coasts to reach Alaska where they spend the summer and autumn. At the end of autumn, the whales travel back to the south.
 
 # Question 5
+
+*For each year, summarize the data with respect to the number of sightings and the number of individuals seen. Plot these data as two time series on the same plot. What does this plot suggest? Do you think this is a true signal? If not, what could it mean ?*
 
 Summarize number of sightings and number of individuals by year :
 
