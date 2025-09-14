@@ -7,7 +7,7 @@ date: 2025/09/11
 knitr:
     opts_chunk: 
         message: false
-format: html
+format: typst
 fig-width: 10
 fig-height: 7.5
 lightbox: true
@@ -114,9 +114,9 @@ ggplot(distributions, aes(x = value)) +
 
 # Question 5
 
-The authors performed three MCMC chains, each with 100 000 iterations, a burn-in of 1 000 and a thinning rate of 1. They assessed parameters convergence visually using trace plots, lag autocorrelation of parameters, and the Brooks-Gelman-Rubin (BGR) diagnostics. Model selection was carried out by comparing the WAIC values of the models.
+The authors performed three MCMC chains, each with 100 000 iterations, a burn-in of 1 000 and a thinning rate of 1. They assessed parameters convergence visually using trace plots, lag autocorrelation of parameters, the Brooks-Gelman-Rubin (BGR) diagnostics, the dispersion of particles between parameters, and the shape of the parameter's marginal profiles. Model selection was carried out by comparing the DIC and WAIC values of the models, as well as checking for correlation between parameters and comparing the posterior distributions of the parameters.
 
-Figures 5.D and 5.H show that there is no correlation between $L_{50}$ and phi for either males or females.
+Figures 5.D and 5.H show that there is no correlation between $L_{50}$ and phi for either males or females when using informative priors. However, there was correlation between the females when using noninformative priors.
 
 Since the prior and posterior distributions are not the same (Fig 6), we can assume that the data were informative on the $L_{50}$ and $\phi$ parameters, except maybe in the case of the female $L_{50}$ where the curves overlap a lot.
 
