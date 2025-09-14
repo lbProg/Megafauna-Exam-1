@@ -8,7 +8,7 @@ knitr:
     opts_chunk: 
         message: false
 format: html
-fig-width: 10
+fig-width: 12
 fig-height: 7.5
 lightbox: true
 toc: true
@@ -65,7 +65,12 @@ Plot of the sightings :
 plot_map <- function(whale_pos) {
     ggplot(whale_pos) +
         geom_sf(data = world) +
-        geom_sf(data = whale_pos, aes(size = no_individuals), shape = 21) +
+        geom_sf(
+            data = whale_pos,
+            aes(size = no_individuals),
+            shape = 21,
+            color = "red"
+        ) +
         coord_sf(xlim = c(-105, -179), ylim = c(22, 73), expand = FALSE) +
         annotation_scale(location = "bl", width_hint = 0.25) +
         annotation_north_arrow(
@@ -96,31 +101,34 @@ Convert the `Date` column to a date object with package `lubridate` :
 ```{r}
 data_whale_sf <- data_whale_sf |>
     mutate(date = as_date(ymd(date))) |> # Convert date to lubridate date object
-    mutate(month = factor(month(date)), year = factor(year(date))) # Extract month and year
+    mutate(
+        month = factor(month(date, label = TRUE, locale = "C", abbr = FALSE)),
+        year = factor(year(date))
+    ) # Extract month and year
 ```
 
 Recode the month as season :
 
 ```{r}
 month_season_table <- tribble(
-    ~month, ~month_name, ~season,
-    "1", "january", "winter",
-    "2", "february", "winter",
-    "3", "march", "spring",
-    "4", "april", "spring",
-    "5", "may", "spring",
-    "6", "june", "summer",
-    "7", "july", "summer",
-    "8", "august", "summer",
-    "9", "september", "autumn",
-    "10", "october", "autumn",
-    "11", "november", "autumn",
-    "12", "december", "winter"
+    ~month, ~season,
+    "January", "winter",
+    "February", "winter",
+    "March", "spring",
+    "April", "spring",
+    "May", "spring",
+    "June", "summer",
+    "July", "summer",
+    "August", "summer",
+    "September", "autumn",
+    "October", "autumn",
+    "November", "autumn",
+    "December", "winter"
 )
 
 month_order <- c(
-    "january", "february", "march", "april", "may", "june", "july", 
-    "august", "september", "october", "november", "december"
+    "January", "February", "March", "April", "May", "June", "July", 
+    "August", "September", "October", "November", "December"
 )
 
 data_whale_sf <- data_whale_sf |>
@@ -130,7 +138,7 @@ data_whale_sf <- data_whale_sf |>
             season,
             levels = c("spring", "summer", "autumn", "winter")
         ),
-        month_name = factor(month_name, levels = month_order)
+        month = factor(month, levels = month_order)
     )
 ```
 
@@ -167,7 +175,7 @@ map3 <- plot_map(data_whale_sf) +
     facet_wrap(vars(season)) +
     geom_point(
         data = data_whale_sf,
-        aes(x = mean_lon, y = mean_lat, color = month_name),
+        aes(x = mean_lon, y = mean_lat, color = month),
         shape = 18,
         size = 4
     ) +
@@ -184,7 +192,8 @@ Summarize number of sightings and number of individuals by year :
 
 ```{r}
 data_whale_summary <- data_whale_sf |>
-    group_by(year) |>
+    st_drop_geometry() |>
+    group_by(date = floor_date(date, "year")) |>
     summarize(sightings = n(), total_ind = sum(no_individuals)) |>
     pivot_longer(
         cols = c(sightings, total_ind),
@@ -197,16 +206,22 @@ Plotting the data :
 
 ```{r}
 #| fig-cap: Time series of the number of sightings and total number of right whales seen each year
+#| fig-width: 8
+#| fig-height: 6
 
 ggplot(
     data_whale_summary,
-    aes(x = year, y = value, color = measure, group = measure)
+    aes(x = date, y = value, color = measure, group = measure)
 ) +
+    geom_point() +
     geom_line() +
-    scale_y_continuous(breaks = seq(0, 54, 2)) +
+    scale_x_date(date_breaks = "1 year", date_labels = "%Y") +
+    scale_y_continuous(breaks = seq(0, 55 ,5)) +
     scale_color_discrete(labels = c("Total sightings", "Total individuals")) +
     labs(x = "Year", y = "Value", color = "Measure") +
     theme_bw()
 ```
 
-It looks like the total number of sightings and the total number of right whale seen are highly correlated each year.
+The number of sightings and the number of individuals are highly correlated and vary in the same way across years. This relationship is expected, since the more individuals there are, the more sightings we are likely to obtain. However, it may also reflect changes in observation effort (number of boats, opportunistic records, etc.).
+
+To confirm that the pattern reflects real fluctuations in population size rather than effort, the number of individuals should be corrected for observation effort each year.
