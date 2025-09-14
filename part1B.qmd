@@ -7,7 +7,7 @@ date: 2025/09/11
 knitr:
     opts_chunk: 
         message: false
-format: typst
+format: html
 fig-width: 10
 fig-height: 7.5
 lightbox: true
