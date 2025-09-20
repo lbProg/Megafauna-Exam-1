@@ -92,6 +92,10 @@ From a biological perspective, $\phi$ shouldn't be negative either (as it would 
 
 *The authors chose to use informative prior distributions for the parameters $\theta = \phi, L_{50}$ with different priors for males and females. Plot the density of these priors using R: use facet to have sex on rows and parameters in columns for this plot. (hint: prepare a data.frame with a long format and use facet_grid)*
 
+For the normal distribution of $L_{50}$, we assumed that the parameters provided by the authors corresponded to the mean and standard deviation, since they specified that the second term was indeed the standard deviation and not $\tau$.
+
+In contrast, for the lognormal distribution of $\phi$, we assumed that the authors had given the meanlog and $\tau$, because BUG/JAGS expects as input a mean and a $\tau$ rather than a mean and a standard deviation. Moreover, they provided the formula for converting between the standard deviation and $\tau$ just afterwards, which reinforced our conclusion that, for the lognormal distribution, they had supplied the BUG/JAGS input arguments.
+
 Generating samples for each distribution :
 
 ```{r}
