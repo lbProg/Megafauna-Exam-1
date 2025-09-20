@@ -7,6 +7,7 @@ date: 2025/09/10
 knitr:
     opts_chunk: 
         message: false
+        warning: false
 format: html
 fig-width: 12
 fig-height: 7.5
@@ -33,7 +34,7 @@ library(viridis)
 
 *Collate the sighting data from Tables 1, 2 and 3 in a file for analysis in R, that is make them tidy data. Keep the datetime stamp, the geographic coordinates of the sightings along with the number of individuals sighted. Do not keep the other columns.*
 
-The data is located in the `Data` folder as a `.csv` file.
+The data is located in the "Data" folder as a `.csv` file.
 
 # Question 2
 
@@ -179,20 +180,36 @@ Add average locations by month to the map :
 ```{r}
 #| fig-cap: Average position of right whale sightings by month, divided between seasons.
 
+month_paths <- data_whale_sf |>
+  group_by(month) |>
+  reframe(across(c(mean_lon, mean_lat), mean)) |>
+  mutate(xend = lead(mean_lon), yend = lead(mean_lat))
+
 map3 <- plot_map(data_whale_sf) +
-  facet_wrap(vars(season)) +
+  geom_segment(
+    data = month_paths,
+    aes(
+      x = mean_lon,
+      y = mean_lat,
+      xend = lead(mean_lon),
+      yend = lead(mean_lat)
+    ),
+    arrow = arrow(length = unit(0.30, "cm"), ends = "last", type = "closed"),
+    alpha = 0.6
+  ) +
   geom_point(
     data = data_whale_sf,
     aes(x = mean_lon, y = mean_lat, color = month),
     shape = 18,
     size = 4
   ) +
+  scale_color_viridis_d() +
   labs(color = "Month")
 
 map3
 ```
 
-Based on these data, it appears that right whales migrate northwards during spring and summer, leaving the southern US coasts to reach Alaska where they spend the summer and autumn. At the end of autumn, the whales travel back to the south.
+Based on these data, it appears that right whales migrate northwards during spring and summer, leaving the southern US coasts to reach Alaska where they spend the summer and autumn. During the winter, the whales travel back to the south.
 
 # Question 5
 
