@@ -56,9 +56,9 @@ Turning the data into an sf object :
 
 ```{r}
 data_whale_sf <- data_whale |>
-    mutate(longitude = -longitude) |>
-    st_as_sf(coords = c("longitude", "latitude"), crs = 4326) |>
-    st_cast()
+  mutate(longitude = -longitude) |>
+  st_as_sf(coords = c("longitude", "latitude"), crs = 4326) |>
+  st_cast()
 ```
 
 Plot of the sightings :
@@ -67,30 +67,30 @@ Plot of the sightings :
 #| fig-cap: Positions of the right whales sightings
 
 plot_map <- function(whale_pos) {
-    ggplot(whale_pos) +
-        geom_sf(data = world) +
-        geom_sf(
-            data = whale_pos,
-            aes(size = no_individuals),
-            shape = 21,
-            color = "red"
-        ) +
-        coord_sf(xlim = c(-105, -179), ylim = c(22, 73), expand = FALSE) +
-        annotation_scale(location = "bl", width_hint = 0.25) +
-        annotation_north_arrow(
-            location = "bl",
-            which_north = "true",
-            pad_x = unit(0.2, "cm"),
-            pad_y = unit(0.5, "cm"),
-            style = north_arrow_fancy_orienteering
-        ) +
-        scale_size_continuous(range = c(2, 7)) +
-        labs(
-            x = "Longitude (°W)",
-            y = "Latitude (°N)",
-            size = "Number of\nindividuals"
-        ) +
-        theme_test()
+  ggplot(whale_pos) +
+    geom_sf(data = world) +
+    geom_sf(
+      data = whale_pos,
+      aes(size = no_individuals),
+      shape = 21,
+      color = "red"
+    ) +
+    coord_sf(xlim = c(-105, -179), ylim = c(22, 73), expand = FALSE) +
+    annotation_scale(location = "bl", width_hint = 0.25) +
+    annotation_north_arrow(
+      location = "bl",
+      which_north = "true",
+      pad_x = unit(0.2, "cm"),
+      pad_y = unit(0.5, "cm"),
+      style = north_arrow_fancy_orienteering
+    ) +
+    scale_size_continuous(range = c(2, 7)) +
+    labs(
+      x = "Longitude (°W)",
+      y = "Latitude (°N)",
+      size = "Number of\nindividuals"
+    ) +
+    theme_test()
 }
 
 map1 <- plot_map(data_whale_sf)
@@ -106,46 +106,46 @@ Convert the `Date` column to a date object with package `lubridate` :
 
 ```{r}
 data_whale_sf <- data_whale_sf |>
-    mutate(date = as_date(ymd(date))) |> # Convert date to lubridate date object
-    mutate(
-        month = factor(month(date, label = TRUE, locale = "C", abbr = FALSE)),
-        year = factor(year(date))
-    ) # Extract month and year
+  mutate(date = as_date(ymd(date))) |> # Convert date to lubridate date object
+  mutate(
+    month = factor(month(date, label = TRUE, locale = "C", abbr = FALSE)),
+    year = factor(year(date))
+  ) # Extract month and year
 ```
 
 Recode the month as season :
 
 ```{r}
 month_season_table <- tribble(
-    ~month, ~season,
-    "January", "winter",
-    "February", "winter",
-    "March", "spring",
-    "April", "spring",
-    "May", "spring",
-    "June", "summer",
-    "July", "summer",
-    "August", "summer",
-    "September", "autumn",
-    "October", "autumn",
-    "November", "autumn",
-    "December", "winter"
+  ~month, ~season,
+  "January", "winter",
+  "February", "winter",
+  "March", "spring",
+  "April", "spring",
+  "May", "spring",
+  "June", "summer",
+  "July", "summer",
+  "August", "summer",
+  "September", "autumn",
+  "October", "autumn",
+  "November", "autumn",
+  "December", "winter"
 )
 
 month_order <- c(
-    "January", "February", "March", "April", "May", "June", "July", 
-    "August", "September", "October", "November", "December"
+  "January", "February", "March", "April", "May", "June", "July", 
+  "August", "September", "October", "November", "December"
 )
 
 data_whale_sf <- data_whale_sf |>
-    left_join(month_season_table) |>
-    mutate(
-        season = factor(
-            season,
-            levels = c("spring", "summer", "autumn", "winter")
-        ),
-        month = factor(month, levels = month_order)
-    )
+  left_join(month_season_table) |>
+  mutate(
+    season = factor(
+      season,
+      levels = c("spring", "summer", "autumn", "winter")
+    ),
+    month = factor(month, levels = month_order)
+  )
 ```
 
 Plot sightings by season :
@@ -166,12 +166,12 @@ Average location of sightings per month :
 
 ```{r}
 data_whale_sf <- data_whale_sf |>
-    mutate(
-        lon = st_coordinates(geometry)[, 1],
-        lat = st_coordinates(geometry)[, 2]
-    ) |>
-    group_by(month) |>
-    mutate(mean_lon = mean(lon), mean_lat = mean(lat))
+  mutate(
+    lon = st_coordinates(geometry)[, 1],
+    lat = st_coordinates(geometry)[, 2]
+  ) |>
+  group_by(month) |>
+  mutate(mean_lon = mean(lon), mean_lat = mean(lat))
 ```
 
 Add average locations by month to the map :
@@ -180,14 +180,14 @@ Add average locations by month to the map :
 #| fig-cap: Average position of right whale sightings by month, divided between seasons.
 
 map3 <- plot_map(data_whale_sf) +
-    facet_wrap(vars(season)) +
-    geom_point(
-        data = data_whale_sf,
-        aes(x = mean_lon, y = mean_lat, color = month),
-        shape = 18,
-        size = 4
-    ) +
-    labs(color = "Month")
+  facet_wrap(vars(season)) +
+  geom_point(
+    data = data_whale_sf,
+    aes(x = mean_lon, y = mean_lat, color = month),
+    shape = 18,
+    size = 4
+  ) +
+  labs(color = "Month")
 
 map3
 ```
@@ -202,14 +202,14 @@ Summarize number of sightings and number of individuals by year :
 
 ```{r}
 data_whale_summary <- data_whale_sf |>
-    st_drop_geometry() |>
-    group_by(date = floor_date(date, "year")) |>
-    summarize(sightings = n(), total_ind = sum(no_individuals)) |>
-    pivot_longer(
-        cols = c(sightings, total_ind),
-        names_to = "measure",
-        values_to = "value"
-    )
+  st_drop_geometry() |>
+  group_by(date = floor_date(date, "year")) |>
+  summarize(sightings = n(), total_ind = sum(no_individuals)) |>
+  pivot_longer(
+    cols = c(sightings, total_ind),
+    names_to = "measure",
+    values_to = "value"
+  )
 ```
 
 Plotting the data :
@@ -220,16 +220,16 @@ Plotting the data :
 #| fig-height: 6
 
 ggplot(
-    data_whale_summary,
-    aes(x = date, y = value, color = measure, group = measure)
+  data_whale_summary,
+  aes(x = date, y = value, color = measure, group = measure)
 ) +
-    geom_point() +
-    geom_line() +
-    scale_x_date(date_breaks = "1 year", date_labels = "%Y") +
-    scale_y_continuous(breaks = seq(0, 55 ,5)) +
-    scale_color_discrete(labels = c("Total sightings", "Total individuals")) +
-    labs(x = "Year", y = "Value", color = "Measure") +
-    theme_bw()
+  geom_point() +
+  geom_line() +
+  scale_x_date(date_breaks = "1 year", date_labels = "%Y") +
+  scale_y_continuous(breaks = seq(0, 55, 5)) +
+  scale_color_discrete(labels = c("Total sightings", "Total individuals")) +
+  labs(x = "Year", y = "Value", color = "Measure") +
+  theme_bw()
 ```
 
 The number of sightings and the number of individuals are highly correlated and vary in the same way across years. This relationship is expected, since the more individuals there are, the more sightings we are likely to obtain. However, it may also reflect changes in observation effort (number of boats, opportunistic records, etc.).
