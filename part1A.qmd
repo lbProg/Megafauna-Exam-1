@@ -178,7 +178,7 @@ data_whale_sf <- data_whale_sf |>
 Add average locations by month to the map :
 
 ```{r}
-#| fig-cap: Average position of right whale sightings by month, divided between seasons.
+#| fig-cap: Average position of right whale sightings by month. Arrows show the migration pattern of whales between february and december.
 
 month_paths <- data_whale_sf |>
   group_by(month) |>
